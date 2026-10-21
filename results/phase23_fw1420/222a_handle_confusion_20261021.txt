@@ -1,0 +1,47 @@
+capture_time: 2026-10-21T15:30:00Z
+firmware: 26.07-14.20.00.07
+probe: 222a_handle_confusion_kaslr.lua (Sections A, B, C)
+
+=== Section A: Event flag + semaphore reachability ===
+sys 538 evf_create(name, 0, 0) rv=0x206  ← LIVE
+sys 538 evf_create(name, 0x110, 0) rv=0x207  ← LIVE
+sys 538 evf_create(0, 0, 0) rv=-1
+sys 544 evf_set(518, 0xFF) rv=0  ← SIGNAL WORKS
+sys 543 evf_trywait(518, 0xFF, 0, out) rv=-1
+sys 545 evf_clear(518, 0xFF) rv=0  ← CLEAR WORKS
+sys 549 osem_create(name, 0, 1, 10) rv=0x208  ← LIVE
+ef_handle=518, sem_handle=520, delta=2 → SHARED NAMESPACE
+
+=== Section B: sys 557/558 generic objects + type spoofing ===
+sys 557 create type=0x000 rv=0x209
+sys 557 create type=0x001 rv=0x20A
+sys 557 create type=0x010 rv=0x20B
+sys 557 create type=0x100 rv=0x20C
+sys 557 create type=0x110 rv=0x20D  (event flag type)
+sys 557 create type=0x120 rv=0x20E  (semaphore type)
+sys 557 create type=0x160 rv=0x20F
+sys 557 create type=0xFFF rv=0x210
+→ ALL TYPES ACCEPTED, 0x18-byte objects
+
+sys 558 delete(521, type=0x0) rv=0  ← DELETE WORKS
+sys 558 double-delete rv=-1  ← CORRECT (already deleted)
+sys 558 cross-type delete (EF handle with sem type) rv=-1  ← TYPE ISOLATION
+
+HANDLE RECYCLING:
+  round  1: 529
+  round  2: 8721     (+8192)
+  round  3: 16913    (+8192)
+  round  4: 25105    (+8192)
+  round  5: 33297    (+8192)
+  round  6: 41489    (+8192)
+  round  7: 49681    (+8192)
+  round  8: 57873    (+8192)
+  round  9: 529      ← RECYCLED
+  round 10: 8721     ← RECYCLED
+  HANDLE RECYCLING CONFIRMED AFTER 8 ROUNDS
+
+=== Section C: Cross-subsystem UAF ===
+Create EF handle=33297 → delete rv=0 → spray 16 sems → signal stale handle
+evf_set on stale handle rv=-1  ← KERNEL INVALIDATES MAPPING
+evf_trywait on stale rv=-1
+CONCLUSION: Stale handle UAF fails. Kernel properly invalidates handle→object mapping at deletion. Race condition (threading) needed for exploitable UAF window.

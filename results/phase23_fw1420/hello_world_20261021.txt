@@ -1,0 +1,23 @@
+capture_time: 2026-10-21T15:00:00Z
+firmware: 26.07-14.20.00.07
+probe: hello_world.lua
+console: PS5 Pro
+entry: Hamidashi Creative Demo (CUSA27390) save injection
+
+--- session 1 ---
+hello world from lua!
+platform ps5 (14.20)
+pid 106 ppid 55
+eboot base @ 0x4bf74000
+libc base @ 0x1245a0000
+libkernel base @ 0x837008000
+
+--- session 2 (after game restart) ---
+hello world from lua!
+platform ps5 (14.20)
+pid 139 ppid 55
+eboot base @ 0x67f78000
+libc base @ 0x1bf0b0000
+libkernel base @ 0x817468000
+
+ASLR: fully randomized across sessions

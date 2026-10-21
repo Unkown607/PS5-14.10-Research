@@ -1,0 +1,39 @@
+capture_time: 2026-10-21T15:50:00Z
+firmware: 26.07-14.20.00.07
+probes: k19, k20, k21, k22
+
+=== thr_create(430) on 14.20 ===
+
+WORKING OFFSETS (ZigZagBoi1 confirmed, verified on 14.20):
+  ctx+0x0C0: CS = 0x43 (dword)
+  ctx+0x0E0: RIP (qword)
+  ctx+0x0F8: RSP (qword)
+  ctx+0x100: SS = 0x3B (dword)
+  ctx+0x108: mc_len = 0x480 (qword)
+  ctx+0x110: RFLAGS = 0x10000 (dword, IF set)
+
+RESULT: THREAD CREATED AND EXECUTED
+  rv=0x0, tid=0x18fa3
+  Child SIGSEGV at rip=0xDEAD, rsp=our_page, cs=0x43, ss=0x3B
+  → Thread executed at our chosen RIP with our chosen RSP
+
+THREAD WITH RET GADGET:
+  RIP=eboot+0x42 (ret)
+  → Child executed ret, popped sentinel from stack → SIGBUS at addr=0x0
+  → Confirmed: thread CAN execute eboot gadgets
+
+SIGNAL HANDLER INTERFERENCE:
+  The loader's process-wide signal handler catches child thread faults.
+  This prevents post-fault stack scanning for sendsig() kernel pointer leaks.
+  WORKAROUND NEEDED: non-crashing thread (loop gadget) or signal handler bypass.
+
+HANDLE ALLOCATION:
+  Multiple thr_create calls allocate sequential TIDs:
+  0x18fad, 0x18faa, 0x18fac, 0x18fab, 0x18fa3
+  → Thread creation is fully functional
+
+Thrd_create (libc C11 threading):
+  libc_addrofs.Thrd_create = 0xa113c3c0  ← WRONG OFFSET for demo build
+  native.fcall(Thrd_create) → SIGSEGV at libc address (page not present)
+  CONCLUSION: Demo (CUSA27390) has different libc offsets than full game (CUSA27389).
+  Use thr_create(430) via make_syscall instead.

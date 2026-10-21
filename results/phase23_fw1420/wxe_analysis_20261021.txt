@@ -1,0 +1,48 @@
+capture_time: 2026-10-21T15:40:00Z
+firmware: 26.07-14.20.00.07
+probes: k9 (sys588), k10 (RWX verify), k15 (native.fcall exec), k16 (sys588+620 exec)
+
+=== mmap RWX ===
+mmap(0, 0x4000, prot=7/RWX, MAP_ANON|MAP_PRIVATE, -1, 0) = 0x3115F4000  ← VALID ADDRESS
+write 0x42424242 → readback 0x42424242  ← WRITABLE
+shellcode write → readback correct  ← READABLE
+
+=== native.fcall to RWX page ===
+native.fcall(rwx_page) → SIGSEGV
+  rip: 000000031155c000  ← AT OUR PAGE
+  err: 0x15  ← bit 4 = INSTRUCTION FETCH VIOLATION
+  addr: 000000031155c000
+CONCLUSION: mmap(RWX) returns valid address, page IS writable+readable,
+  but EXEC BIT IS STRIPPED by kernel. W^X enforced at kernel level.
+
+=== mprotect ===
+mprotect(page, 0x4000, RWX=7) = -1
+mprotect(page, 0x4000, RX=5) = -1
+mprotect(page, 0x4000, WX=6) = -1
+ALL REFUSED.
+
+=== mmap direct ===
+mmap(RX=5) = 0x3115EC000  ← VALID (but likely RO, not RX)
+mmap(RWX=7) = 0x3115F0000  ← VALID (but exec bit stripped)
+Write to RX page → SIGSEGV caught by signal handler, write=0x0
+
+=== sys 588 (DMEM page attribute modifier) ===
+sys 588(mmap_page, size, RX=5) = -1  ← REFUSED on mmap pages
+sys 588(mmap_page, size, RWX=7) = -1  ← REFUSED
+
+=== sys 620 (VM self-mod) ===
+sys 620() = 0  ← ACCEPTED but no protection change observed
+
+=== native.fcall availability ===
+native.fcall = function  ← WORKS, can jump to ANY address
+native.fcall_with_rax = function  ← WORKS
+native.read_buffer = function  ← WORKS
+native.write_buffer = function  ← WORKS
+native_invoke = true
+native_cmd_handler = true
+
+CONCLUSION: W^X is firmly enforced on 14.20.
+  - mmap accepts prot=7 but strips exec bit
+  - mprotect refuses any exec permission change
+  - sys 588 only works on DMEM pages, not mmap
+  - native.fcall CAN jump to any address → ROP via existing gadgets is the path

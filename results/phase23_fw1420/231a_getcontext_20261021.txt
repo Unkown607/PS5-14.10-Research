@@ -1,0 +1,29 @@
+capture_time: 2026-10-21T15:05:00Z
+firmware: 26.07-14.20.00.07
+probe: 231a_thr_ucontext_kaslr.lua (Section A only)
+
+=== SECTION A: getcontext(421) on current thread ===
+  getcontext ok=true rv=0x0
+  changed dwords: 304 / 320
+  non-zero qwords in ucontext buffer:
+    +0x048 (rdi) = 0x0000000310CF99E0
+    +0x080 (rbx) = 0x000000004C0AA976
+    +0x088 (rbp) = 0x00000007EFD925E0
+    +0x090 (r10) = 0x000000000515CA11
+    +0x098 (r11) = 0x00000000005BF4A0
+    +0x0A0 (r12) = 0x00000000FFFFFFFF
+    +0x0B0 (r14) = 0x000000004BF74042
+    +0x0B8 (r15) = 0x000000004BF74042
+    +0x0C0 (cs) = 0x001B001300000000
+    +0x0D0 (err) = 0x003B003B00000001
+    +0x0E0 (rip) = 0x0000000837008B5C
+    +0x0E8 (ds) = 0x0000000000000043
+    +0x0F0 (es) = 0x0000000000000202
+    +0x0F8 (rsp) = 0x0000000310C80868
+    +0x100 (ss) = 0x000000000000003B
+    +0x108 (mc_len) = 0x0000000000000480
+    +0x110 (mc_fpformat) = 0x0000000000010002
+    +0x118 (mc_ownedfp) = 0x0000000000020001
+  byte-level scan for 0xFFFF8xxx pattern: (none)
+
+CONCLUSION: mcontext layout identical to 13.60. No kernel pointers.

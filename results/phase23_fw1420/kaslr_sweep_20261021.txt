@@ -1,0 +1,68 @@
+capture_time: 2026-10-21T15:20:00Z
+firmware: 26.07-14.20.00.07
+probes: k4 (sys660+532+538+625+563), k5 (sys660 h=0x13,0x14 + PMU), k6 (sys532 cmds+sys630), k7 (GPU cmd scan)
+
+=== sys 660 dynlib_get_info2 ===
+handle=0 rv=0:
+  +008=69622E74_6F6F6265  (ASCII: "eboot.bi")
+  +010=00000000_0000006E  ("n")
+  +108=00000000_67F78000  (eboot text base - USERLAND)
+  +110=00000005_00494000  (text size)
+  +118=00000000_68778000  (segment 2 base)
+  +120=00000003_00180000  (segment 2 size)
+  +128=00000000_68578000  (segment 3 base)
+  +130=00000001_00018000  (segment 3 size)
+  +148=A7266D16_00000003  (hash/fingerprint)
+
+handle=0x13 rv=0:
+  +008=69466563_5362696C  (ASCII: "libSceFi")
+  +010=00787270_2E32736F  ("os2.prx")
+  +108=00000000_EBD64000  (text base - USERLAND)
+  +110=00000005_00060000  (text size)
+
+handle=0x14 rv=0:
+  +008=7872702E_6362696C  (ASCII: "lib.prxc")
+  +108=00000001_BF0B0000  (text base - USERLAND)
+  +110=00000005_00114000  (text size)
+
+KERNEL POINTERS: 0
+
+=== sys 532 GPU dispatch ===
+cmd=0x20 rv=0: output=0x800D0219 (Sony error: mode restriction)
+cmds 0x18-0x1E,0x2F rv=0: output=0x800D0203 (Sony error: cmd not found)
+cmds 0x31,0x45 rv=-1
+
+All 9 unprivileged GPU commands return Sony error codes, no data.
+KERNEL POINTERS: 0
+
+=== sys 630 mount enumeration ===
+630(buf_only) rv=-1
+630(arg2=buf) rv=-1
+630(buf+size) rv=-1
+630('/') rv=-1
+630('/dev') rv=-1
+630('/system') rv=-1
+630('/user') rv=-1
+DEAD on 14.20.
+
+=== sys 625 MSR controller ===
+cmd=1 rv=-1
+cmd=2 rv=-1
+cmd=3 rv=-1
+ALL DEAD on 14.20.
+
+=== sys 563-567 PMU ===
+sys 563 (enable, selector=0) rv=0  ← ACCEPTED
+sys 564 (disable) rv=0             ← ACCEPTED
+sys 565 (configure) rv=-1          ← REFUSED
+sys 566 (write counter) untested
+sys 567 (read, all TIDs) rv=-1     ← REFUSED
+PMU enable accepted but configure/read BLOCKED.
+
+=== sys 538 event flag create ===
+ef_create rv=0x4205  ← HANDLE RETURNED, IPC LIVE
+
+=== sys 549 semaphore create ===
+sem_create rv=0x208  ← HANDLE RETURNED, IPC LIVE
+
+TOTAL KERNEL POINTERS ACROSS ALL TESTS: 0
